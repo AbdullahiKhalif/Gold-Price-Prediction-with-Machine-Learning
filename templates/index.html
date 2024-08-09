@@ -271,32 +271,26 @@
                 <div class="card-body">
                     <div class="row justify-content-center mb-2">
                         <div class="col-sm-8">
-                            <form id="predictionForm" novalidate>
-                              <div class="form-group">
-                                <label for="SPX" class="fw-bold">SPX:</label>
-                                <input type="number" class="form-control" id="SPX" name="SPX" required>
-                                <div class="invalid-feedback">Please enter a valid SPX value.</div>
-                              </div>
-                              <div class="form-group">
-                                <label for="USO" class="fw-bold">USO:</label>
-                                <input type="number" class="form-control" id="USO" name="USO" required>
-                                <div class="invalid-feedback">Please enter a valid USO value.</div>
-                              </div>
-                              <div class="form-group">
-                                <label for="SLV" class="fw-bold">SLV:</label>
-                                <input type="number" class="form-control" id="SLV" name="SLV" required>
-                                <div class="invalid-feedback">Please enter a valid SLV value.</div>
-                              </div>
-                              <div class="form-group">
-                                <label for="EUR/USD" class="fw-bold">EUR/USD:</label>
-                                <input type="number" class="form-control" id="EUR/USD" name="EUR/USD" required>
-                                <div class="invalid-feedback">Please enter a valid EUR/USD value.</div>
-                              </div>
-                             
-                              
-                              <button type="submit" class="btn btn-primary mt-2" style="background-color: #FF046F;">Predict</button>
+                            <form id="predictionForm">
+                                <div class="mb-3">
+                                    <label for="openPrice" class="form-label fw-bold">Open Price</label>
+                                    <input type="number" step="any" class="form-control" id="openPrice" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="highPrice" class="form-label fw-bold">High Price</label>
+                                    <input type="number" step="any" class="form-control" id="highPrice" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="lowPrice" class="form-label fw-bold">Low Price</label>
+                                    <input type="number" step="any" class="form-control" id="lowPrice" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="volume" class="form-label fw-bold">Volume</label>
+                                    <input type="number" class="form-control" id="volume" required>
+                                </div>
+                                <button type="submit" class="btn btn-danger">Predict</button>
                             </form>
-                             <div id="result" class="mt-4 fs-4 lead fw-bold"></div>
+                             <div id="predictionResult" class="mt-4 fs-4 lead fw-bold"></div>
                           </div>
                     </div>
                 </div>
@@ -327,51 +321,63 @@
 <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Script for handling form submission and custom validation -->
 <script>
-    $(document).ready(function() {
-      $('#predictionForm').submit(function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-  
-        var form = $(this);
-        var isValid = true;
-  
-        form.find(':input').each(function() {
-          if ($(this).prop('required') && !$(this).val()) {
-            isValid = false;
-            $(this).addClass('is-invalid');
-          }
-        });
-  
-        if (!isValid) {
-          form.addClass('was-validated');
-          return;
-        }
-  
-        var formData = form.serialize();
-  
+$(document).ready(function() {
+    $('#predictionForm').on('submit', function(event) {
+        event.preventDefault(); // Prevents the form from traditional submission
+
+        // Collect data from the form
+        var formData = {
+            features: [
+                $('#openPrice').val(),
+                $('#highPrice').val(),
+                $('#lowPrice').val(),
+                $('#volume').val()
+            ]
+        };
+
+        // Make an AJAX POST request
         $.ajax({
-          type: 'POST',
-          url: '/predict',
-          data: formData,
-          success: function(response) {
-            $('#result').html('<p>The Predicted Gold Price Is: ' + response.prediction.toFixed(2) + '</p>');
-          },
-          error: function(xhr, status, error) {
-            console.error(xhr.responseText);
-            $('#result').html(`<p>Error: Unable to make prediction.</p>`);
-          }
+            url: '/predict',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                $('#predictionResult').html(`<p>Predicted Gold Price: ${response.prediction.toFixed(2)}</p>`);
+                // Show a success message after the prediction
+                setTimeout(function() {
+                   showSuccessToast("Data successfully saved into the database");
+                }, 1000);
+            },
+            error: function(error) {
+                console.error('Error:', error);
+                $('#predictionResult').html(`<p>Error: Could not retrieve prediction.</p>`);
+            }
         });
-      });
-  
-      // Reset validation state on input change
-      $('#predictionForm input').change(function() {
-        $(this).removeClass('is-invalid');
-      });
     });
-  </script>
+    function showSuccessToast(message) {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    });
+    Toast.fire({
+        icon: "success",
+        title: message
+    });
+}
+});
+</script>
+
+
   
 </body>
 </html>
