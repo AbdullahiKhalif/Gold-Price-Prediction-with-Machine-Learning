@@ -18,6 +18,27 @@
 
             <!-- Stats Row -->
             <div class="row">
+                   <div class="col-xl-3 col-sm-6">
+                    <div class="card illustration flex-fill">
+                        <div class="card-body p-0 d-flex flex-fill" style="height: 160px; background-color: #fff;">
+                            <div class="row g-0 w-100">
+                                <div class="col-6">
+                                    {% if 'username' in session %}
+                                    <div class="illustration-text p-3 m-1">
+                                        <h4 class="illustration-text">
+                                            Welcome Back, {{ session['username'] }}!
+                                        </h4>
+                                        <p class="mb-0"></p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-6 align-self-end text-end">
+                                    <img src="{{ url_for('static', filename='assets/img/illustrations/customer-support.png') }}" alt="Customer Support" class="img-fluid illustration-img" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-xl-3 col-sm-6">
                     <div class="card">
                         <div class="card-body">
