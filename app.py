@@ -3,7 +3,6 @@ import numpy as np
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import mysql.connector
 import re
-from flask_cors import CORS
 import logging
 
 app = Flask(__name__)
@@ -59,7 +58,7 @@ def login():
             session['userRole'] = user['userRole']
             return redirect(url_for('dashboard')) if user['userRole'] == 'Admin' else redirect(url_for('index'))
         else:
-            return jsonify(error='Invalid email or password')
+            return render_template('login.html', error='Invalid email or password')
 
     return render_template('login.html')
 
@@ -71,13 +70,10 @@ def signup():
         email = request.form['email']
         gender = request.form['gender']
         password = request.form['password']
-        userRole = 'User'  # Default role
 
-        # Check if the name is valid
         if not is_valid_name(name):
             return render_template('signup.html', error='Invalid name. Please enter a valid name.')
 
-        # Check if email already exists
         conn = mysql.connector.connect(**mysql_config)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -87,16 +83,13 @@ def signup():
             conn.close()
             return render_template('signup.html', error='Email already exists')
 
-        # Insert user into database
-        cursor.execute("INSERT INTO users (name, gender, email, password, userRole) VALUES (%s, %s, %s, %s, %s)",
-                       (name, gender, email, password, userRole))
+        cursor.execute("INSERT INTO users (name, gender, email, password) VALUES (%s, %s, %s, %s)", (name, gender, email, password))
         conn.commit()
         cursor.close()
         conn.close()
 
         return redirect(url_for('login'))
     return render_template('signup.html')
-
 
 def is_valid_name(name):
     # Add your validation logic here, for example:
